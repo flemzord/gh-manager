@@ -1,0 +1,82 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [ assigned, opened, synchronize, reopened ]
+  release:
+    types: [ prereleased, released ]
+
+name: Main
+jobs:
+  Tests:
+    runs-on: ubuntu-latest
+    steps:
+        - name: Install task
+          uses: arduino/setup-task@v1
+        - uses: actions/checkout@v3
+        - uses: actions/setup-go@v3
+          with:
+            go-version-file: 'go.mod'
+            cache: true
+        - name: Run tests
+          run: task tests
+        - name: Upload coverage to Codecov
+          run: bash <(curl -s https://codecov.io/bash)
+
+  Lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+          args: --verbose
+
+  Build:
+    name: GoReleaser Build
+    runs-on: ubuntu-latest
+    needs:
+      - Tests
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v2
+        with:
+          version: latest
+          args: build --parallelism 4 --rm-dist --skip-validate --snapshot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  Release:
+    if: github.event.action == 'released' || github.event.action == 'prereleased'
+    name: GoReleaser Release
+    runs-on: ubuntu-latest
+    needs:
+      - Tests
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Fetch all tags
+        run: git fetch --force --tags
+      - uses: actions/setup-go@v3
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+      - name: Run GoReleaser
+        env:
+          GITHUB_TOKEN: ${{ secrets.FLEMZORD_GITHUB_TOKEN }}
+        uses: goreleaser/goreleaser-action@v2
+        with:
+          version: latest
+          args: release --parallelism 4 --rm-dist --skip-validate
