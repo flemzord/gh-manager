@@ -39,6 +39,7 @@ jobs:
           args: --verbose
 
   Build:
+    if: github.event.action != 'released' || github.event.action != 'prereleased'
     name: GoReleaser Build
     runs-on: ubuntu-latest
     needs:
