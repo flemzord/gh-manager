@@ -14,7 +14,6 @@ linters:
   disable-all: true
   enable:
     - deadcode    #Default linter
-    - errcheck    #Default linter
     - gosimple    #Default linter
     - govet       #Default linter
     - ineffassign #Default linter
