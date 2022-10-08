@@ -1,0 +1,12 @@
+dryrun: true
+github:
+  organization: YOUR ORGANIZATION
+  token: YOUR TOKEN
+
+permissions:
+    - team: Admin
+      permission: admin
+    - team: DevOps
+      permission: maintain
+    - team: Dev
+      permission: maintain

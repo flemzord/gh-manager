@@ -12,3 +12,9 @@ type Config struct {
 	Organization string
 	Token        string
 }
+
+type Permissions []struct {
+	Team       string `yaml:"team"`
+	Permission string `yaml:"permission"`
+	TeamID     int64  `yaml:"team_id,omitempty"`
+}
