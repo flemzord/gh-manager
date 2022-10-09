@@ -8,9 +8,8 @@ import (
 
 type GithubConfig struct {
 	Context      context.Context
-	Client       github.Client
+	Client       *github.Client
 	Organization string
-	Token        string
 }
 
 type Config struct {

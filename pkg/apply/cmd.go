@@ -2,6 +2,7 @@ package apply
 
 import (
 	"context"
+
 	"github.com/flemzord/gh-manager/pkg/github"
 	"github.com/flemzord/gh-manager/pkg/lib"
 	"github.com/flemzord/gh-manager/pkg/types"
@@ -12,7 +13,12 @@ import (
 
 func NewApplyCommand(cmd *cobra.Command, args []string) {
 	ctx := context.Background()
-	githubAuth := github.Login(ctx, viper.GetString("github.organization"), viper.GetString("github.token"))
+	client := github.Login(ctx, viper.GetString("github.token"))
+	githubAuth := types.GithubConfig{
+		Context:      ctx,
+		Client:       client,
+		Organization: viper.GetString("github.organization"),
+	}
 	// Create struct with Config File
 	var configFile types.Config
 	err := viper.Unmarshal(&configFile)

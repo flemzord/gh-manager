@@ -9,7 +9,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func Login(ctx context.Context, organization string, token string) types.GithubConfig {
+func Login(ctx context.Context, token string) *github.Client {
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},
 	)
@@ -17,13 +17,7 @@ func Login(ctx context.Context, organization string, token string) types.GithubC
 
 	client := github.NewClient(tc)
 
-	config := types.GithubConfig{
-		Context:      ctx,
-		Client:       *client,
-		Organization: organization,
-		Token:        token,
-	}
-	return config
+	return client
 }
 
 func GetAllRepository(config *types.GithubConfig) ([]*github.Repository, error) {
