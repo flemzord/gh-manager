@@ -26,20 +26,18 @@ func init() {
 func applyConfig(cmd *cobra.Command, args []string) {
 	ctx := context.Background()
 	githubAuth := pkgGithub.Login(ctx, viper.GetString("github.organization"), viper.GetString("github.token"))
-	// Get permissions and retrieve group id
-	var permissions types.Permissions
-	err := viper.UnmarshalKey("permissions", &permissions)
+	// Create struct with Config File
+	var configFile types.Config
+	err := viper.Unmarshal(&configFile)
 	if err != nil {
 		return
 	}
+
 	var githubTeams []string
-	for index, permission := range permissions {
-		id, _ := pkgGithub.GetTeamID(&githubAuth, permission.Team)
-		permission.TeamID = id
-		permissions[index] = permission
-		githubTeams = append(githubTeams, permission.Team)
+	for _, permission := range configFile.Repository.Permissions {
+		githubTeams = append(githubTeams, permission[0].Team)
 	}
-	log.Debugln(permissions)
+	log.Debugln(configFile)
 	log.Debugln(githubTeams)
 
 	repos, err := pkgGithub.GetAllRepository(&githubAuth)
@@ -48,7 +46,7 @@ func applyConfig(cmd *cobra.Command, args []string) {
 	}
 	log.Infof("Found %d repositories", len(repos))
 	for index, repo := range repos {
-		log.Debugf("Repository: %s", *repo.Name)
+		log.Infof("Repository %s updated (%d/%d)", *repo.Name, index+1, len(repos))
 		archived := repo.GetArchived()
 		if archived {
 			continue
@@ -57,8 +55,8 @@ func applyConfig(cmd *cobra.Command, args []string) {
 			log.Errorf("Error: %s", err)
 			return
 		}
-		for _, permission := range permissions {
-			err = pkgGithub.AddTeamPermissionToRepository(&githubAuth, permission.Team, permission.TeamID, *repo.Name, permission.Permission)
+		for _, permission := range configFile.Repository.Permissions {
+			err = pkgGithub.AddTeamPermissionToRepository(&githubAuth, permission[0].Team, *repo.Name, permission[0].Permission)
 			if err != nil {
 				log.Errorf("Error: %s", err)
 				return
@@ -67,7 +65,7 @@ func applyConfig(cmd *cobra.Command, args []string) {
 		// Clean Teams
 		teams, _ := pkgGithub.GetTeamsForRepository(&githubAuth, *repo.Name)
 		for _, team := range teams {
-			if !Contains(githubTeams, *team.Name) {
+			if !Contains(githubTeams, *team.Name) && !Contains(configFile.Repository.ExcludeTeam, *team.Name) {
 				err = pkgGithub.RemoveTeamPermissionToRepository(&githubAuth, *team.Name, *repo.Name)
 				if err != nil {
 					log.Errorf("Error: %s", err)
@@ -84,7 +82,6 @@ func applyConfig(cmd *cobra.Command, args []string) {
 				log.Errorf("Error: %s", err)
 			}
 		}
-		log.Infof("Repository %s updated (%d/%d)", *repo.Name, index+1, len(repos))
 	}
 }
 

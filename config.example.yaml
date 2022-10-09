@@ -3,10 +3,14 @@ github:
   organization: YOUR ORGANIZATION
   token: YOUR TOKEN
 
-permissions:
+repository:
+  permissions:
     - team: Admin
       permission: admin
     - team: DevOps
       permission: maintain
     - team: Dev
       permission: maintain
+  ignore:
+    team:
+      - Exclude

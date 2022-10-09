@@ -2,14 +2,14 @@ package github
 
 import (
 	"context"
-	"golang.org/x/oauth2"
 
 	"github.com/flemzord/gh-manager/pkg/types"
-	"github.com/google/go-github/v45/github"
+	"github.com/google/go-github/v47/github"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/oauth2"
 )
 
-func Login(ctx context.Context, organization string, token string) types.Config {
+func Login(ctx context.Context, organization string, token string) types.GithubConfig {
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},
 	)
@@ -17,7 +17,7 @@ func Login(ctx context.Context, organization string, token string) types.Config 
 
 	client := github.NewClient(tc)
 
-	config := types.Config{
+	config := types.GithubConfig{
 		Context:      ctx,
 		Client:       *client,
 		Organization: organization,
@@ -26,7 +26,7 @@ func Login(ctx context.Context, organization string, token string) types.Config 
 	return config
 }
 
-func GetAllRepository(config *types.Config) ([]*github.Repository, error) {
+func GetAllRepository(config *types.GithubConfig) ([]*github.Repository, error) {
 	opt := &github.RepositoryListByOrgOptions{
 		ListOptions: github.ListOptions{PerPage: 100},
 	}
@@ -46,7 +46,7 @@ func GetAllRepository(config *types.Config) ([]*github.Repository, error) {
 	return allRepos, nil
 }
 
-func GetTeamsForRepository(config *types.Config, repoName string) ([]*github.Team, error) {
+func GetTeamsForRepository(config *types.GithubConfig, repoName string) ([]*github.Team, error) {
 	teams, _, err := config.Client.Repositories.ListTeams(config.Context, config.Organization, repoName, &github.ListOptions{})
 	if err != nil {
 		return nil, err
@@ -54,7 +54,7 @@ func GetTeamsForRepository(config *types.Config, repoName string) ([]*github.Tea
 	return teams, nil
 }
 
-func GetTeams(config *types.Config) ([]*github.Team, error) {
+func GetTeams(config *types.GithubConfig) ([]*github.Team, error) {
 	opt := &github.ListOptions{}
 	teams, _, err := config.Client.Teams.ListTeams(config.Context, config.Organization, opt)
 	if err != nil {
@@ -64,7 +64,7 @@ func GetTeams(config *types.Config) ([]*github.Team, error) {
 	return teams, nil
 }
 
-func GetTeamID(config *types.Config, TeamName string) (int64, error) {
+func GetTeamID(config *types.GithubConfig, TeamName string) (int64, error) {
 	teams, err := GetTeams(config)
 	if err != nil {
 		return 0, err
@@ -77,8 +77,9 @@ func GetTeamID(config *types.Config, TeamName string) (int64, error) {
 	return 0, nil
 }
 
-func AddTeamPermissionToRepository(config *types.Config, TeamName string, TeamID int64, Repository string, Permission string) error {
+func AddTeamPermissionToRepository(config *types.GithubConfig, TeamName string, Repository string, Permission string) error {
 	organizationInfo, _, _ := config.Client.Organizations.Get(config.Context, config.Organization)
+	TeamID, _ := GetTeamID(config, TeamName)
 
 	opt := &github.TeamAddTeamRepoOptions{Permission: Permission}
 	_, err := config.Client.Teams.AddTeamRepoByID(config.Context, organizationInfo.GetID(), TeamID, config.Organization, Repository, opt)
@@ -89,7 +90,7 @@ func AddTeamPermissionToRepository(config *types.Config, TeamName string, TeamID
 	return nil
 }
 
-func RemoveTeamPermissionToRepository(config *types.Config, RepositoryName string, TeamName string) error {
+func RemoveTeamPermissionToRepository(config *types.GithubConfig, RepositoryName string, TeamName string) error {
 	organizationInfo, _, _ := config.Client.Organizations.Get(config.Context, config.Organization)
 	Team, _ := GetTeamID(config, TeamName)
 
@@ -101,7 +102,7 @@ func RemoveTeamPermissionToRepository(config *types.Config, RepositoryName strin
 	return nil
 }
 
-func RemoveCollaboratorPermissionToRepository(config *types.Config, RepositoryName string, CollaborateurName string) error {
+func RemoveCollaboratorPermissionToRepository(config *types.GithubConfig, RepositoryName string, CollaborateurName string) error {
 	_, err := config.Client.Repositories.RemoveCollaborator(config.Context, config.Organization, RepositoryName, CollaborateurName)
 	if err != nil {
 		return err
@@ -110,7 +111,7 @@ func RemoveCollaboratorPermissionToRepository(config *types.Config, RepositoryNa
 	return nil
 }
 
-func GetCollaboratorsForRepository(config *types.Config, RepositoryName string) ([]*github.User, error) {
+func GetCollaboratorsForRepository(config *types.GithubConfig, RepositoryName string) ([]*github.User, error) {
 	opt := &github.ListCollaboratorsOptions{
 		Affiliation: "direct",
 	}
