@@ -85,7 +85,7 @@ func AddTeamPermissionToRepository(config *types.Config, TeamName string, TeamID
 	if err != nil {
 		return err
 	}
-	log.Printf("Repository %s: Team %s has been added or updated with permission %s\n", Repository, TeamName, Permission)
+	log.Debugf("Repository %s: Team %s has been added or updated with permission %s\n", Repository, TeamName, Permission)
 	return nil
 }
 
@@ -97,7 +97,7 @@ func RemoveTeamPermissionToRepository(config *types.Config, RepositoryName strin
 	if err != nil {
 		return err
 	}
-	log.Printf("Repository %s: Team %s has been removed\n", RepositoryName, TeamName)
+	log.Debugf("Repository %s: Team %s has been removed\n", RepositoryName, TeamName)
 	return nil
 }
 
@@ -106,7 +106,7 @@ func RemoveCollaboratorPermissionToRepository(config *types.Config, RepositoryNa
 	if err != nil {
 		return err
 	}
-	log.Printf("Repository %s: Collaborator %s has been removed\n", RepositoryName, CollaborateurName)
+	log.Debugf("Repository %s: Collaborator %s has been removed\n", RepositoryName, CollaborateurName)
 	return nil
 }
 

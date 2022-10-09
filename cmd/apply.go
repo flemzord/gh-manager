@@ -46,8 +46,9 @@ func applyConfig(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Errorf("Error: %s", err)
 	}
-	for _, repo := range repos {
-		log.Infof("Repository: %s", *repo.Name)
+	log.Infof("Found %d repositories", len(repos))
+	for index, repo := range repos {
+		log.Debugf("Repository: %s", *repo.Name)
 		archived := repo.GetArchived()
 		if archived {
 			continue
@@ -83,6 +84,7 @@ func applyConfig(cmd *cobra.Command, args []string) {
 				log.Errorf("Error: %s", err)
 			}
 		}
+		log.Infof("Repository %s updated (%d/%d)", *repo.Name, index+1, len(repos))
 	}
 }
 
