@@ -6,4 +6,4 @@ version: '3'
 tasks:
   tests:
     cmds:
-      - go test -v -coverpkg ./ -coverprofile coverage.out -covermode atomic ./
+      - go test -v ./... -coverprofile=coverage.out
